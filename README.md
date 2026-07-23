@@ -161,6 +161,10 @@ Copilot CLI namespaces plugin commands by plugin name. For example:
 pi install git:github.com/DietrichGebert/ponytail
 ```
 
+Pi registers the bundled skills as explicit `/skill:ponytail-*` commands, but their `disable-model-invocation: true` frontmatter keeps them out of the model's available-skills prompt. The model cannot select them automatically; you can still invoke them directly, and the extension's `/ponytail-review`, `/ponytail-audit`, `/ponytail-debt`, `/ponytail-gain`, and `/ponytail-help` aliases do that for you.
+
+The extension itself remains active without model-invoked skills: it injects the selected `lite`/`full`/`ultra` ruleset before each agent run, restores the session mode, renders the status indicator, and provides `/ponytail` mode/status/default controls. It registers no tools.
+
 ### OpenCode
 
 Add to `opencode.json`:
