@@ -25,8 +25,8 @@
 </p>
 
 <p align="center">
-  <strong>코드 약 54% 감소(최대 94%) &middot; 약 20% 저렴 &middot; 약 27% 빠름 &middot; 100% 안전</strong><br>
-  <sub>실제 오픈소스 저장소(FastAPI + React)를 고치는 실제 Claude Code 세션에서, 스킬을 끈 같은 에이전트와 견줘 측정했다. 약 54%는 기능 작업 12건의 평균이다(Haiku 4.5, n=4). 에이전트가 과하게 짤 여지가 있는 곳(날짜 선택기)에선 94%까지 오르고, 코드가 이미 최소한인 곳에선 0에 가깝다. ponytail은 안전 가드를 하나도 빼놓지 않지만, 그냥 "한 줄로 써"라고만 시킨 프롬프트는 그중 하나를 놓친다. (예전 단발성 벤치마크는 80-94%를 단일 수치로 내세웠는데, 공정한 에이전트 기준선에 견주면 그건 평균이 아니라 작업별 상한이다.) <a href="benchmarks/results/2026-06-18-agentic.md">전체 보고서</a> &middot; <a href="benchmarks/">직접 재현하기</a>.</sub>
+  <strong>코드 약 54% 감소(최대 94%) &middot; 약 20% 저렴 &middot; 약 27% 빠름 &middot; 적대적 검사 20/20 통과</strong><br>
+  <sub>실제 오픈소스 저장소(FastAPI + React)를 고치는 실제 Claude Code 세션에서, 스킬을 끈 같은 에이전트와 견줘 측정했다. 약 54%는 기능 작업 12건의 평균이다(Haiku 4.5, n=4). 에이전트가 과하게 짤 여지가 있는 곳(날짜 선택기)에선 94%까지 오르고, 코드가 이미 최소한인 곳에선 0에 가깝다. ponytail은 검사한 안전 가드 20개를 모두 지켰지만, 그냥 "한 줄로 써"라고만 시킨 프롬프트는 하나를 놓쳤다. 이는 벤치마크 결과이지 보안 증명이 아니다. (예전 단발성 벤치마크는 80-94%를 단일 수치로 내세웠는데, 공정한 에이전트 기준선에 견주면 그건 평균이 아니라 작업별 상한이다.) <a href="benchmarks/results/2026-06-18-agentic.md">전체 보고서</a> &middot; <a href="benchmarks/">직접 재현하기</a>.</sub>
 </p>
 
 <p align="center">
@@ -61,16 +61,16 @@ ponytail이라면:
 공정하게 재려면 실제 에이전트에게 실질적인 작업을 시켜 봐야 한다. 헤드리스 Claude Code 세션에게 [tiangolo의 full-stack-fastapi-template](https://github.com/fastapi/full-stack-fastapi-template)(진짜 FastAPI + React 저장소)을 맡기고, 남긴 `git diff`로 점수를 매겼다. 기능 티켓 12건, 같은 에이전트를 스킬만 켜고 끄며 비교, n=4, Haiku 4.5.
 
 <p align="center">
-  <img src="assets/benchmark-agentic.svg" width="860" alt="Each arm as a percent of the no-skill baseline across LOC, tokens, cost and time (Haiku 4.5). ponytail is lowest on every metric (LOC 46%, tokens 78%, cost 80%, time 73%); caveman rises above 100% on tokens, cost and time; yagni-oneliner LOC 67%. Safety, separate adversarial tier: baseline, caveman and ponytail 100%, yagni-oneliner 95%.">
+  <img src="assets/benchmark-agentic.svg" width="860" alt="Each arm as a percent of the no-skill baseline across LOC, tokens, cost and time (Haiku 4.5). ponytail is lowest on every metric (LOC 46%, tokens 78%, cost 80%, time 73%); caveman rises above 100% on tokens, cost and time; yagni-oneliner LOC 67%. Separate adversarial checks: baseline, caveman and ponytail passed 20/20; yagni-oneliner passed 19/20.">
 </p>
 
-| 스킬 없는 기준선 대비 | LOC | tokens | cost | time | safe |
+| 스킬 없는 기준선 대비 | LOC | tokens | cost | time | 적대적 검사 통과 |
 |---|--:|--:|--:|--:|--:|
-| **ponytail** | **-54%** | **-22%** | **-20%** | **-27%** | **100%** |
-| caveman (간결한 산문 대조군) | -20% | +7% | +3% | +2% | 100% |
-| "YAGNI + one-liners" 프롬프트 | -33% | -14% | -21% | -30% | 95% |
+| **ponytail** | **-54%** | **-22%** | **-20%** | **-27%** | **20/20** |
+| caveman (간결한 산문 대조군) | -20% | +7% | +3% | +2% | 20/20 |
+| "YAGNI + one-liners" 프롬프트 | -33% | -14% | -21% | -30% | 19/20 |
 
-모든 지표를 깎은 건 ponytail뿐이고, 그러면서 안전까지 온전히 지킨 것도 ponytail뿐이다. 깎이는 폭은 과잉 구현의 함정이 실제로 있는 곳에서 가장 크다. 컴포넌트 대신 네이티브 `<input>`으로 손이 가니 날짜 선택기는 404줄에서 23줄로, 색상 선택기는 287줄에서 23줄로 줄어든다. 반대로 이미 군더더기 없는 코드에선 거의 0이다. 전체 방법론, 작업별 표, 한계는 [benchmarks/results/2026-06-18-agentic.md](benchmarks/results/2026-06-18-agentic.md)에 있다.
+모든 지표를 깎으면서 이 벤치마크의 적대적 검사를 전부 통과한 건 ponytail뿐이다. 깎이는 폭은 과잉 구현의 함정이 실제로 있는 곳에서 가장 크다. 컴포넌트 대신 네이티브 `<input>`으로 손이 가니 날짜 선택기는 404줄에서 23줄로, 색상 선택기는 287줄에서 23줄로 줄어든다. 반대로 이미 군더더기 없는 코드에선 거의 0이다. 전체 방법론, 작업별 표, 한계는 [benchmarks/results/2026-06-18-agentic.md](benchmarks/results/2026-06-18-agentic.md)에 있다.
 
 <details>
 <summary><strong>예전 단발성 수치 (격리된 생성)</strong></summary>
@@ -89,21 +89,19 @@ ponytail이라면:
 
 ## How it works
 
-코드를 쓰기 전에, 에이전트는 가장 먼저 들어맞는 단계에서 멈춘다:
+먼저 요청, 저장소 규칙, 근처 코드와 테스트를 읽고 실제 흐름을 따라간다. 그다음 단계를 밟는다:
 
 ```
-1. 이게 있을 필요가 있나?      → 없다: 건너뛴다 (YAGNI)
-2. 이미 이 코드베이스에 있나?  → 다시 짜지 말고 가져다 쓴다
-3. 표준 라이브러리로 되나?     → 쓴다
-4. 네이티브 플랫폼 기능인가?   → 쓴다
-5. 깔려 있는 의존성이 푸나?    → 쓴다
-6. 한 줄로 되나?               → 한 줄
-7. 그제서야: 돌아가는 최소한
+1. 이게 있을 필요가 있나?      → 없다: 추측으로 만든 범위는 뺀다 (YAGNI)
+2. 이미 여기서 풀었나?         → 이 저장소가 하던 방식을 재사용한다
+3. 이미 있는 것으로 되나?      → 표준 라이브러리, 네이티브, DB, 설치된 의존성
+4. 그제서야                   → 근처 코드에 어울리는 가장 작은 평범한 구현
+5. 더 단순해질 수 있나?        → 읽기와 테스트가 쉬운 동안만 줄인다
 ```
 
-단계를 밟는 건 문제를 이해한 *다음*이지, 이해를 대신하는 게 아니다. 변경이 닿는 코드를 읽고 실제 흐름을 따라가 본 뒤에야 단계를 고른다. 해법에는 게을러도, 읽는 데는 절대 게으르지 않다.
+줄 수보다 이 저장소가 이미 일하는 방식이 먼저다. 디자인 시스템 컴포넌트가 있다면 일반 네이티브 컨트롤보다 그쪽이 낫다. 한 줄은 더 긴 버전만큼 명확하고 확인하기 쉬울 때만 이긴다.
 
-게으른 거지 부주의한 게 아니다. 신뢰 경계의 검증, 데이터 손실 방지, 보안, 접근성은 결코 잘려 나가지 않는다.
+게으른 거지 부주의한 게 아니다. 신뢰 경계의 검증, 데이터 손실 방지, 보안, 접근성, 기존 테스트 깊이는 결코 잘려 나가지 않는다. 삭제한 기능의 테스트도 삭제한다. 예전 동작이 계속 없다는 걸 증명하는 테스트를 새로 넣지 않는다. 임시 검사는 디버깅용이지 커밋용이 아니다.
 
 ## Install
 

@@ -3,7 +3,7 @@
 // targeting a rule that a field review (rcstack, phases 0-8) showed mattered:
 //   hardware     - "hardware is never the spec ideal, leave the calibration knob"
 //   explanation  - "explanation the user explicitly asked for is not debt"
-//   onecheck     - "lazy code without its check is unfinished"
+//   onecheck     - isolated non-trivial logic keeps a runnable check
 //
 // Heuristic graders, same spirit as loc.js / correctness.js. The graders
 // themselves are proven by tests/behavior.test.js (RED/GREEN, no API key).
@@ -35,7 +35,7 @@ const CHECKS = {
       : { pass: false, reason: `Truncated the requested explanation (${words} words of prose).` };
   },
 
-  // Leaves ONE runnable check behind for non-trivial logic.
+  // Leaves a runnable check when the isolated task has no repository convention.
   onecheck(output) {
     const t = String(output || '');
     const hasCheck = /\bassert\b|def\s+test_|if\s+__name__|unittest|pytest|console\.assert|\bexpect\(|\bdescribe\(|\bit\(/.test(t);

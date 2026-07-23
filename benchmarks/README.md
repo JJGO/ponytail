@@ -66,8 +66,9 @@ Versus baseline, ponytail writes **80-94% less code**, costs **42-75% less**, an
 > overstates the win. [#126](https://github.com/DietrichGebert/ponytail/issues/126) was right about
 > that. The [agentic benchmark](agentic/) re-runs the comparison as a *real Claude Code session on a
 > real public repo*: ponytail cuts **60-94%** on features with an over-build trap (custom component
-> vs native input), is a wash on already-minimal code, never writes more, and stays **100% safe**
-> while the bare "one-liner" prompt drops a guard. That is the honest, defensible number. See
+> vs native input), is a wash on already-minimal code, never writes more, and passes **20/20 tested
+> safety checks** while the bare "one-liner" prompt passes 19/20. That is a benchmark result, not a
+> security proof. See
 > [results/2026-06-18-agentic.md](results/2026-06-18-agentic.md).
 
 ## Independent benchmarks

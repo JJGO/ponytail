@@ -10,7 +10,7 @@
 #
 # baseline is included as the control: the no-skill arm should mostly FAIL these
 # gates, the ponytail arm should pass them. That delta is the point.
-description: "Ponytail behavior gates: hardware calibration, requested explanation, one runnable check."
+description: "Ponytail behavior gates: hardware calibration, requested explanation, isolated-logic verification."
 
 providers:
   - id: anthropic:messages:claude-opus-4-8

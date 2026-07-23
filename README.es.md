@@ -25,8 +25,8 @@
 </p>
 
 <p align="center">
-  <strong>~54% menos de código (hasta 94%) &middot; ~20% más barato &middot; ~27% más rápido &middot; 100% seguro</strong><br>
-  <sub>Medido en sesiones reales de Claude Code editando un repo open-source real (FastAPI + React), contra el mismo agente sin skill. ~54% es el promedio de 12 tareas de feature (Haiku 4.5, n=4); llega al 94% cuando un agente sobre-construye (un selector de fechas) y es casi cero cuando el código ya es mínimo. ponytail mantiene cada guarda de seguridad, mientras que un prompt simple de "escribe one-liners" se salta una. (El benchmark anterior de un solo disparo reportaba 80-94% como cifra plana; contra un baseline agéntico justo, ese es el techo por tarea, no el promedio.) <a href="benchmarks/results/2026-06-18-agentic.md">Reporte completo</a> &middot; <a href="benchmarks/">reprodúcelo</a>.</sub>
+  <strong>~54% menos de código (hasta 94%) &middot; ~20% más barato &middot; ~27% más rápido &middot; 20/20 pruebas adversariales superadas</strong><br>
+  <sub>Medido en sesiones reales de Claude Code editando un repo open-source real (FastAPI + React), contra el mismo agente sin skill. ~54% es el promedio de 12 tareas de feature (Haiku 4.5, n=4); llega al 94% cuando un agente sobre-construye (un selector de fechas) y es casi cero cuando el código ya es mínimo. ponytail mantuvo cada guarda probada, mientras que un prompt simple de "escribe one-liners" se saltó una; es un resultado de benchmark, no una prueba de seguridad. (El benchmark anterior de un solo disparo reportaba 80-94% como cifra plana; contra un baseline agéntico justo, ese es el techo por tarea, no el promedio.) <a href="benchmarks/results/2026-06-18-agentic.md">Reporte completo</a> &middot; <a href="benchmarks/">reprodúcelo</a>.</sub>
 </p>
 
 <p align="center">
@@ -61,16 +61,16 @@ Más sobrevivientes en [examples/](examples/).
 La medición honesta es un agente real haciendo trabajo real: una sesión headless de Claude Code editando [el template full-stack-fastapi de tiangolo](https://github.com/fastapi/full-stack-fastapi-template) (un repo real de FastAPI + React), evaluada sobre el `git diff` que deja. Doce tickets de feature, el mismo agente con y sin el skill, n=4, Haiku 4.5.
 
 <p align="center">
-  <img src="assets/benchmark-agentic.svg" width="860" alt="Cada variante como porcentaje del baseline sin skill en LOC, tokens, costo y tiempo (Haiku 4.5). ponytail es el más bajo en cada métrica (LOC 46%, tokens 78%, costo 80%, tiempo 73%); caveman sube por encima del 100% en tokens, costo y tiempo; yagni-oneliner LOC 67%. Seguridad, tier adversarial aparte: baseline, caveman y ponytail 100%, yagni-oneliner 95%.">
+  <img src="assets/benchmark-agentic.svg" width="860" alt="Cada variante como porcentaje del baseline sin skill en LOC, tokens, costo y tiempo (Haiku 4.5). ponytail es el más bajo en cada métrica (LOC 46%, tokens 78%, costo 80%, tiempo 73%); caveman sube por encima del 100% en tokens, costo y tiempo; yagni-oneliner LOC 67%. Pruebas adversariales aparte: baseline, caveman y ponytail 20/20; yagni-oneliner 19/20.">
 </p>
 
-| vs baseline sin skill | LOC | tokens | costo | tiempo | seguro |
+| vs baseline sin skill | LOC | tokens | costo | tiempo | pruebas superadas |
 |---|--:|--:|--:|--:|--:|
-| **ponytail** | **-54%** | **-22%** | **-20%** | **-27%** | **100%** |
-| caveman (control de prosa concisa) | -20% | +7% | +3% | +2% | 100% |
-| prompt "YAGNI + one-liners" | -33% | -14% | -21% | -30% | 95% |
+| **ponytail** | **-54%** | **-22%** | **-20%** | **-27%** | **20/20** |
+| caveman (control de prosa concisa) | -20% | +7% | +3% | +2% | 20/20 |
+| prompt "YAGNI + one-liners" | -33% | -14% | -21% | -30% | 19/20 |
 
-ponytail es la única variante que recorta cada métrica, y la única que se mantiene totalmente segura al hacerlo. El recorte es mayor donde hay una trampa real de sobre-construcción (selector de fechas de 404 a 23 líneas, selector de color de 287 a 23, porque usa un `<input>` nativo en vez de un componente) y casi cero en código que ya es mínimo. Método completo, tablas por tarea y limitaciones: [benchmarks/results/2026-06-18-agentic.md](benchmarks/results/2026-06-18-agentic.md).
+ponytail es la única variante que recorta cada métrica y supera todas las pruebas adversariales de este benchmark. El recorte es mayor donde hay una trampa real de sobre-construcción (selector de fechas de 404 a 23 líneas, selector de color de 287 a 23, porque usa un `<input>` nativo en vez de un componente) y casi cero en código que ya es mínimo. Método completo, tablas por tarea y limitaciones: [benchmarks/results/2026-06-18-agentic.md](benchmarks/results/2026-06-18-agentic.md).
 
 <details>
 <summary><strong>Números anteriores de un solo disparo (generación aislada)</strong></summary>
@@ -89,21 +89,19 @@ Esto mostraba **80-94% menos código**. [#126](https://github.com/DietrichGebert
 
 ## Cómo funciona
 
-Antes de escribir código, el agente se detiene en el primer peldaño que aguanta:
+Primero el agente lee la petición, las reglas del repo, el código y los tests cercanos, y sigue el flujo real. Después recorre la escalera:
 
 ```
-1. ¿Necesita existir esto?        → no: omitirlo (YAGNI)
-2. ¿Ya existe en este código?     → reúsalo, no lo reescribas
-3. ¿Lo hace la stdlib?            → úsala
-4. ¿Es una feature nativa?        → úsala
-5. ¿Una dependencia ya instalada? → úsala
-6. ¿Cabe en una línea?            → una línea
-7. Solo entonces: el mínimo que funciona
+1. ¿Necesita existir esto?       → no: omite trabajo que nadie necesita aún (YAGNI)
+2. ¿Ya está resuelto aquí?       → reutiliza cómo lo hace este repo
+3. ¿Algo disponible lo resuelve?→ stdlib, nativo, base de datos o dependencia instalada
+4. Solo entonces                → la implementación aburrida más pequeña que encaje
+5. ¿Puede ser más simple?       → solo si sigue claro y fácil de probar
 ```
 
-La escalera se recorre *después* de entender el problema, no en su lugar: lee el código que toca el cambio y sigue el flujo real antes de elegir un peldaño. Flojo en la solución, nunca en la lectura.
+Cómo funciona el repo vale más que contar líneas: su componente de diseño gana a un control nativo genérico. Una línea gana solo si es igual de clara y fácil de comprobar que la versión larga.
 
-Flojo, no negligente: la validación en límites de confianza, el manejo de pérdida de datos, la seguridad y la accesibilidad nunca están en riesgo.
+Flojo, no negligente: la validación en límites de confianza, el manejo de pérdida de datos, la seguridad, la accesibilidad y la profundidad de tests existente nunca se recortan. Feature borrada = tests borrados; no agregues asserts para demostrar que el comportamiento viejo sigue ausente. Los checks temporales sirven para depurar, no para hacer commit.
 
 ## Instalación
 

@@ -57,7 +57,7 @@ test('explanation: terse truncation fails', () => {
   assert.equal(r.pass, false);
 });
 
-// --- onecheck: leave one runnable check ---
+// --- onecheck: isolated non-trivial logic keeps a runnable check ---
 
 test('onecheck: leaves an assert passes', () => {
   const r = check('onecheck',

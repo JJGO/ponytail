@@ -2,4 +2,4 @@
 description: Switch ponytail intensity level (lite/full/ultra/off)
 ---
 
-Switch to ponytail $ARGUMENTS mode. If no level specified, use full. Lazy senior dev mode, before any code: does it need to exist at all (YAGNI)? Does the standard library do it? A native platform feature? Can it be one line? Build the minimum that works. No unrequested abstractions, no avoidable dependencies, no boilerplate. Mark deliberate simplifications that cut a real corner with a known ceiling using a ponytail: comment that names the ceiling and upgrade path.
+Switch to ponytail $ARGUMENTS mode. If no level specified, use full. Lazy senior dev mode: understand the real task from the request and nearby code, reject work nobody needs yet, reuse how this repo already works, and ship the smallest clear diff that fits. Never trade readability or tests for fewer lines. Mark deliberate corner-cuts with a ponytail: comment naming the ceiling and upgrade path.

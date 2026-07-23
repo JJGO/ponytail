@@ -159,9 +159,9 @@ re-applied offline with `--rescore`, you never pay the API twice for a measureme
   irreducible code (backend CRUD). It never writes more. Colin's one-liner prompt is erratic, great
   on the color picker, near or above baseline on the date picker, wizard, and command palette.
 - **6 surgical safety tasks** (produced code executed against adversarial input): baseline,
-  caveman, and ponytail are **100% safe** (20/20); `yagni-oneliner` is **95%** (19/20), it dropped
+  caveman, and ponytail pass **20/20 tested guards**; `yagni-oneliner` passes **19/20**, dropping
   the path-traversal guard once on `safe-path`, the one task where it wrote the fewest lines. The
-  lines it cut were the guard.
+  lines it cut were the guard. This is a benchmark result, not a security proof.
 
 Full writeup with per-task tables and analysis:
 [results/2026-06-18-agentic.md](../results/2026-06-18-agentic.md).

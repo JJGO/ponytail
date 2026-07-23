@@ -25,8 +25,8 @@
 </p>
 
 <p align="center">
-  <strong>~54% less code (up to 94%) &middot; ~20% cheaper &middot; ~27% faster &middot; 100% safe</strong><br>
-  <sub>Measured on real Claude Code sessions editing a real open-source repo (FastAPI + React), against the same agent with no skill. ~54% is the mean across 12 feature tasks (Haiku 4.5, n=4); it reaches 94% where an agent over-builds (a date picker) and is near zero where the code is already minimal. ponytail keeps every safety guard while a bare "write one-liners" prompt drops one. (The earlier single-shot benchmark reported 80-94% as a flat figure; against a fair agentic baseline that is the per-task ceiling, not the average.) <a href="benchmarks/results/2026-06-18-agentic.md">Full writeup</a> &middot; <a href="benchmarks/">reproduce it</a>.</sub>
+  <strong>~54% less code (up to 94%) &middot; ~20% cheaper &middot; ~27% faster &middot; 20/20 benchmark safety checks passed</strong><br>
+  <sub>Measured on real Claude Code sessions editing a real open-source repo (FastAPI + React), against the same agent with no skill. ~54% is the mean across 12 feature tasks (Haiku 4.5, n=4); it reaches 94% where an agent over-builds (a date picker) and is near zero where the code is already minimal. ponytail kept every tested guard while a bare "write one-liners" prompt dropped one; this is a benchmark result, not a security proof. (The earlier single-shot benchmark reported 80-94% as a flat figure; against a fair agentic baseline that is the per-task ceiling, not the average.) <a href="benchmarks/results/2026-06-18-agentic.md">Full writeup</a> &middot; <a href="benchmarks/">reproduce it</a>.</sub>
 </p>
 
 <p align="center">
@@ -61,16 +61,16 @@ More survivors in [examples/](examples/).
 The honest measurement is a real agent doing real work: a headless Claude Code session editing [tiangolo's full-stack-fastapi-template](https://github.com/fastapi/full-stack-fastapi-template) (a real FastAPI + React repo), scored on the `git diff` it leaves behind. Twelve feature tickets, the same agent with and without the skill, n=4, Haiku 4.5.
 
 <p align="center">
-  <img src="assets/benchmark-agentic.svg" width="860" alt="Each arm as a percent of the no-skill baseline across LOC, tokens, cost and time (Haiku 4.5). ponytail is lowest on every metric (LOC 46%, tokens 78%, cost 80%, time 73%); caveman rises above 100% on tokens, cost and time; yagni-oneliner LOC 67%. Safety, separate adversarial tier: baseline, caveman and ponytail 100%, yagni-oneliner 95%.">
+  <img src="assets/benchmark-agentic.svg" width="860" alt="Each arm as a percent of the no-skill baseline across LOC, tokens, cost and time (Haiku 4.5). ponytail is lowest on every metric (LOC 46%, tokens 78%, cost 80%, time 73%); caveman rises above 100% on tokens, cost and time; yagni-oneliner LOC 67%. Separate adversarial checks: baseline, caveman and ponytail passed 20/20; yagni-oneliner passed 19/20.">
 </p>
 
-| vs no-skill baseline | LOC | tokens | cost | time | safe |
+| vs no-skill baseline | LOC | tokens | cost | time | adversarial checks passed |
 |---|--:|--:|--:|--:|--:|
-| **ponytail** | **-54%** | **-22%** | **-20%** | **-27%** | **100%** |
-| caveman (terse-prose control) | -20% | +7% | +3% | +2% | 100% |
-| "YAGNI + one-liners" prompt | -33% | -14% | -21% | -30% | 95% |
+| **ponytail** | **-54%** | **-22%** | **-20%** | **-27%** | **20/20** |
+| caveman (terse-prose control) | -20% | +7% | +3% | +2% | 20/20 |
+| "YAGNI + one-liners" prompt | -33% | -14% | -21% | -30% | 19/20 |
 
-ponytail is the only arm that cuts every metric, and the only one that stays fully safe while doing it. The cut is biggest where there is a real over-build trap (date picker 404 to 23 lines, color picker 287 to 23, because it reaches for a native `<input>` instead of a component) and near zero on code that is already minimal. Full method, per-task tables, and limitations: [benchmarks/results/2026-06-18-agentic.md](benchmarks/results/2026-06-18-agentic.md).
+ponytail is the only arm that cuts every metric while passing every adversarial check in this benchmark. The cut is biggest where there is a real over-build trap (date picker 404 to 23 lines, color picker 287 to 23, because it reaches for a native `<input>` instead of a component) and near zero on code that is already minimal. Full method, per-task tables, and limitations: [benchmarks/results/2026-06-18-agentic.md](benchmarks/results/2026-06-18-agentic.md).
 
 <details>
 <summary><strong>Older single-shot numbers (isolated generation)</strong></summary>
@@ -89,21 +89,19 @@ This showed **80-94% less code**. [#126](https://github.com/DietrichGebert/ponyt
 
 ## How it works
 
-Before writing code, the agent stops at the first rung that holds:
+First the agent reads the request, the repo's instructions, nearby code and tests, and traces the real flow. Then it walks the ladder:
 
 ```
-1. Does this need to exist?   → no: skip it (YAGNI)
-2. Already in this codebase?  → reuse it, don't rewrite
-3. Stdlib does it?            → use it
-4. Native platform feature?   → use it
-5. Installed dependency?      → use it
-6. One line?                  → one line
-7. Only then: the minimum that works
+1. Does this need to exist?       → no: skip work nobody needs yet (YAGNI)
+2. Already solved here?          → reuse how this repo does it
+3. Something available solves it?→ stdlib, native, database, or installed dependency
+4. Only then                     → smallest boring implementation that fits nearby
+5. Can it be simpler?            → only if it stays clear and easy to test
 ```
 
-The ladder runs *after* it understands the problem, not instead of it: it reads the code the change touches and traces the real flow before picking a rung. Lazy about the solution, never about reading.
+How the repo already works beats line count: its design-system component beats a generic native control. One line wins only when it is at least as clear and easy to check as the longer version.
 
-Lazy, not negligent: trust-boundary validation, data-loss handling, security, and accessibility are never on the chopping block.
+Lazy, not negligent: trust-boundary validation, data-loss handling, security, accessibility, and existing test depth are never on the chopping block. Deleted feature = deleted tests; do not add assertions that the old behavior stays gone. Temporary removal checks are for debugging, not committing.
 
 ## Install
 

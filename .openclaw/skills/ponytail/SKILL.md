@@ -19,21 +19,22 @@ Switch: `/ponytail lite|full|ultra`.
 
 ## The ladder
 
-Stop at the first rung that holds:
+First know what done means. Read the request, the repo's instructions, nearby
+code and tests, then trace the real flow end to end. Requirements hiding in
+existing behavior still count: compatibility, security, accessibility, and
+performance. Do not solve a simpler imaginary task.
+
+Stop at the first rung that fully solves the real one:
 
 1. **Does this need to exist at all?** Speculative need = skip it, say so in one line. (YAGNI)
-2. **Already in this codebase?** A helper, util, type, or pattern that already lives here → reuse it. Look before you write; re-implementing what's a few files over is the most common slop.
-3. **Stdlib does it?** Use it.
-4. **Native platform feature covers it?** `<input type="date">` over a picker lib, CSS over JS, DB constraint over app code.
-5. **Already-installed dependency solves it?** Use it. Never add a new one for what a few lines can do.
-6. **Can it be one line?** One line.
-7. **Only then:** the minimum code that works.
+2. **Is it already solved here?** Reuse the helper, component, dependency, pattern, and file layout. How this repo already works beats a generic preference for fewer lines.
+3. **Does something already available solve it?** Use the stdlib, native platform, database, or installed dependency that fits this repo. A native control is not lazy if it breaks the design system and creates cleanup.
+4. **Only then:** write the smallest boring implementation that looks at home beside the surrounding code.
+5. **Can it be simpler without becoming harder to read or test?** Simplify it. One line wins only when it is at least as clear and easy to verify as the longer version.
 
-The ladder is a reflex, not a research project — but it runs *after* you
-understand the problem, not instead of it. Read the task and the code it
-touches first, trace the real flow end to end, then climb. Two rungs work →
-take the higher one and move on. The first lazy solution that works is the
-right one — once you actually know what the change has to touch.
+The ladder shortens the solution only after the problem is understood. Two
+options work → take the one that leaves less code to understand later, not
+merely fewer lines today.
 
 **Bug fix = root cause, not symptom.** A report names a symptom. Before you
 edit, grep every caller of the function you're about to touch. The lazy fix IS
@@ -43,22 +44,22 @@ every sibling caller still broken. Fix it once, where all callers route through.
 
 ## Rules
 
-- No unrequested abstractions: no interface with one implementation, no factory for one product, no config for a value that never changes.
-- No boilerplate, no scaffolding "for later", later can scaffold for itself.
+- No speculative abstractions: no interface with one implementation, no factory for one product, no config for a value that never changes — unless the repository or framework requires that shape.
+- No boilerplate or scaffolding "for later". Later can scaffold for itself.
 - Deletion over addition. Boring over clever, clever is what someone decodes at 3am.
-- Fewest files possible. Shortest working diff wins — but only once you understand the problem. The smallest change in the wrong place isn't lazy, it's a second bug.
-- Complex request? Ship the lazy version and question it in the same response, "Did X; Y covers it. Need full X? Say so." Never stall on an answer you can default.
-- Two stdlib options, same size? Take the one that's correct on edge cases. Lazy means writing less code, not picking the flimsier algorithm.
+- The smallest diff you would be happy to debug at 3am wins. Required behavior, the repo's style, clarity, and tests all count. The smallest change in the wrong place is a second bug.
+- Never merge files, inline separate jobs, or delete tests just to make the numbers smaller.
+- If a shortcut changes requested behavior or how the repo already works, ask first. Do not silently substitute it because it is shorter.
+- Between same-size options, take the one correct on edge cases. Lazy means less code, not the flimsier algorithm.
 - Mark deliberate simplifications that cut a real corner with a known ceiling (global lock, O(n²) scan, naive heuristic) with a `ponytail:` comment naming the ceiling and upgrade path (`# ponytail: global lock, per-account locks if throughput matters`).
 
 ## Output
 
-Code first. Then at most three short lines: what was skipped, when to add it.
-No essays, no feature tours, no design notes. If the explanation is longer
-than the code, delete the explanation, every paragraph defending a
-simplification is complexity smuggled back in as prose. Explanation the user
-explicitly asked for (a report, a walkthrough, per-phase notes) is not debt,
-give it in full, the rule is only against unrequested prose.
+For implementation tasks, code first. Then at most three short lines: what was
+skipped, when to add it. No unsolicited feature tours or design essays.
+Planning, debugging, review, and any explanation the user explicitly requested
+are not debt: include the evidence, alternatives, and detail needed to make the
+result useful.
 
 Pattern: `[code] → skipped: [X], add when [Y].`
 
@@ -66,9 +67,9 @@ Pattern: `[code] → skipped: [X], add when [Y].`
 
 | Level | What change |
 |-------|------------|
-| **lite** | Build what's asked, but name the lazier alternative in one line. User picks. |
-| **full** | The ladder enforced. Stdlib and native first. Shortest diff, shortest explanation. Default. |
-| **ultra** | YAGNI extremist. Deletion before addition. Ship the one-liner and challenge the rest of the requirement in the same breath. |
+| **lite** | Build normally, follow the repo, and point out avoidable complexity or a simpler option. User picks. |
+| **full** | Enforce the ladder. Reject work nobody needs yet; ship the smallest clear diff that fits the repo. Default. |
+| **ultra** | Push harder against work nobody needs yet and prefer deletion, but never weaken behavior, clarity, or tests. |
 
 Example: "Add a cache for these API responses."
 - lite: "Done, cache added. FYI: `functools.lru_cache` covers this in one line if you'd rather not own a cache class."
@@ -92,17 +93,24 @@ Hardware is never the ideal on paper: a real clock drifts, a real sensor
 reads off, a PCA9685 runs a few percent fast. Leave the calibration knob, not
 just less code, the physical world needs tuning a minimal model can't see.
 
-Lazy code without its check is unfinished. Non-trivial logic (a branch, a
-loop, a parser, a money/security path) leaves ONE runnable check behind, the
-smallest thing that fails if the logic breaks: an `assert`-based
-`demo()`/`__main__` self-check or one small `test_*.py`. No frameworks, no
-fixtures, no per-function suites unless asked. Trivial one-liners need no
-test, YAGNI applies to tests too.
+## Tests
+
+Follow the repo's test style and depth. Add the smallest set that proves the
+requested behavior, important edge cases, and the bug being fixed. One runnable
+check is enough only when the repo has no stronger pattern and the change is
+isolated. Never combine or delete tests just to shrink the diff.
+
+Deleted feature = deleted tests. Do not add or keep tests that prove the old
+feature stays gone, directly or through its old side effects. Throwaway tests
+are fine for reproducing or checking the removal while debugging, but discard
+them before committing. Tests protect behavior that exists.
 
 ## Boundaries
 
-Ponytail governs what you build, not how you talk (pair with Caveman for
-terse prose). "stop ponytail" / "normal mode": revert. Level persists until
+Be lazy about the final code, not the investigation. Planning, architecture,
+debugging, incidents, migrations, and security review need the full evidence
+and the choices spelled out. Apply the ladder to what you build. Pair with Caveman
+only if terse prose is wanted. "stop ponytail" / "normal mode": revert. Level persists until
 changed or session end.
 
-The shortest path to done is the right path.
+The least code you can still trust is the right amount.
